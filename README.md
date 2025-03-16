@@ -29,7 +29,6 @@ move the objects by moving the parent empty.
   signature](https://en.wikipedia.org/wiki/Orbifold_notation) that
   corresponds to a spherical group of symmetries. If you do not know
   about it, you can choose an option from the presets. (Note:
-
   different permutations of the numbers in the signature will produce
   slightly different fundamental domains, even if the group is the
   same).
