@@ -14,7 +14,7 @@ Now you can enable / disable the extension whenever you want.
 
 #### Usage
 
-In object mode, press A (add object). Then look for **Symmetry
+In object mode, press `A` (add object). Then look for **Symmetry
 group**. You can choose whether to add a mesh (fundamental tile) or a
 group of axes. A group of objects of the specified type will appear
 parented to an empty object with the same name as the group
@@ -58,13 +58,13 @@ subdivide and pinch unneeded faces.
   a symmetry group as objects of symmetry. This makes it easier not to
   break the mesh, and to work better with other modifiers.
 
-* Ctrl-L on object mode lets you link data / copy modifiers.
+* `Ctrl-L` on object mode lets you link data / copy modifiers.
 
 * Right click on the group empty parent lets you select / delete the
-  full hierarchy, and not only the parent. Similarly, Shift+Click on
+  full hierarchy, and not only the parent. Similarly, `Shift+Click` on
   the eye lets you hide the whole hierarchy.
   
-* Select all the meshes in the hierarchy and press Ctrl-J to join the
+* Select all the meshes in the hierarchy and press `Ctrl-J` to join the
   meshes, if you want to have a unified mesh. Note that further edits
   will break the symmetry. You can merge relatively nearby vertices
-  like this: Edit mode > m > by distance.
+  like this: Edit mode > `m` > by distance.
