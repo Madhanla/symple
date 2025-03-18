@@ -1,2 +1,9 @@
 *~
 *#
+*.mp4
+*.zip
+*.osp
+__pycache__
+*.png
+*.html
+/video_assets

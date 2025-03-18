@@ -44,13 +44,13 @@ class SymGrp():
     """
     def __init__(self, signature, *, calculate_axes = True):
         self._parse(signature)
-        self._axes = self._tile = self._inverse_axes = None
+        self._axes = self._tile = self._inverse_axes = self._all_axes = None
         if calculate_axes:
             self._calculate_axes()
             assert(len(self) == self.n_symmetries)
 
     def _calculate_axes(self):
-        self._axes, *self._tile, self._inverse_axes = self._get_axes()
+        self._axes, self._inverse_axes, *self._tile = self._get_axes()
         self._all_axes = (*((ax, Vector((1,1,1))) for ax in self.axes),
                           *((ax, Vector((1,-1,1))) for ax in self.inverse_axes))
             
@@ -397,7 +397,7 @@ class SymGrp():
 
         if self.has_inverse_symmetry and not self.xs:
             inverse_axes = axes
-        return axes, verts, faces, inverse_axes
+        return axes, inverse_axes, verts, faces
     
     @property
     def axes(self):

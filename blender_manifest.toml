@@ -3,7 +3,7 @@ schema_version = "1.0.0"
 # Example of manifest file for a Blender extension
 # Change the values according to your extension
 id = "symple"
-version = "0.0.3"
+version = "0.1.0"
 name = "Symple (symmetry groups)"
 tagline = "Create figures with spherical symmetry with ease"
 maintainer = "Martín Torres Valverde <buztor@hotmail.com>"
@@ -13,8 +13,8 @@ type = "add-on"
 # # Optional: link to documentation, support, source files, etc
 # website = "https://extensions.blender.org/add-ons/my-example-package/"
 
-# # Optional: tag list defined by Blender and server, see:
-# # https://docs.blender.org/manual/en/dev/advanced/extensions/tags.html
+# Optional: tag list defined by Blender and server, see:
+# https://docs.blender.org/manual/en/dev/advanced/extensions/tags.html
 tags = ["Add Mesh", "Modeling", "Object"]
 
 blender_version_min = "4.2.0"
@@ -27,11 +27,11 @@ blender_version_min = "4.2.0"
 license = [
   "SPDX:GPL-3.0-or-later",
 ]
-# # Optional: required by some licenses.
-# copyright = [
-#   "2002-2024 Developer Name",
-#   "1998 Company Name",
-# ]
+# Optional: required by some licenses.
+copyright = [
+  "2025 Martín Torres Valverde",
+  #"1998 Company Name",
+]
 
 # # Optional: list of supported platforms. If omitted, the extension will be available in all operating systems.
 # platforms = ["windows-x64", "macos-arm64", "linux-x64"]
@@ -63,13 +63,20 @@ license = [
 # files = "Import/export FBX from/to disk"
 # clipboard = "Copy and paste bone transforms"
 
-# # Optional: advanced build settings.
-# # https://docs.blender.org/manual/en/dev/advanced/extensions/command_line_arguments.html#command-line-args-extension-build
-# [build]
-# # These are the default build excluded patterns.
-# # You only need to edit them if you want different options.
-# paths_exclude_pattern = [
-#   "__pycache__/",
-#   "/.git/",
-#   "/*.zip",
-# ]
+# Optional: advanced build settings.
+# https://docs.blender.org/manual/en/dev/advanced/extensions/command_line_arguments.html#command-line-args-extension-build
+[build]
+paths_exclude_pattern = [
+  "__pycache__/",
+  "/.git/",
+  "/*.zip",
+  "*~",
+  "#*#",
+  "README*",
+  "*.mp4",
+  "*.png",
+  "*.html",
+  "*.osp",
+  "video_assets",
+  "/.gitignore"
+]

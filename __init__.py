@@ -8,9 +8,7 @@ Usage in Blender:
 * Object mode > Right click > Symmetry group from object
 
 """
-import sys as _sys
 import os as _os
-import warnings as _warnings
 
 import bpy.utils
 import importlib as _importlib
@@ -20,9 +18,6 @@ _importlib.reload(addon_add_object)
 
 
 ADDON_FOLDER_PATH = _os.path.dirname(__file__)
-VERSION = (0, 0, 3)
-MODULE_NAME = "symple"
-ADDON_NAME = "Symple (symmetry groups) v{}.{}.{}".format(*VERSION)
 
 
 # Registration
