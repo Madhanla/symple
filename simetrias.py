@@ -124,10 +124,10 @@ class SymGrp():
                         centers.append(inf)
                     case _ if char in digits:
                         centers.append(int(char))
-                    case "*":
+                    case "*" | "★":
                         centers = kaleidoscopes
                         self._stars += 1
-                    case "x":
+                    case "x" | "❌" | "✕":
                         self._xs += 1
                         centers = ImmutableList(
                             err = "Miracle (x) with centers is impossible"
