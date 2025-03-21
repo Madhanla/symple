@@ -49,8 +49,8 @@ def add_symgrp(operator, context):
     except (BadSymGrpError, NotImplementedError) as e:
         operator.report(
             {'ERROR_INVALID_INPUT'},
-            ": ".join((str(type(e).__name__), *e.args)))
-        return
+            ": ".join((type(e).__name__, *e.args)))
+        return {'CANCELLED'}
     
     extra_rotation = operator.extra_rotation.to_quaternion()
     match operator.mode:
@@ -90,11 +90,13 @@ def add_symgrp(operator, context):
         obj.select_set(False)
     empty.select_set(True)
     context.view_layer.objects.active = empty
+    return {'FINISHED'}
         
 
 def search_signature(operator, context, value):
     return (s for s in SIGNATURES
             if s.startswith(value))
+
 
 # Class definitions
 
@@ -102,11 +104,11 @@ class SymGrpAdder(bpy.types.Operator, AddObjectHelper):
     """Create a new symmetry group"""
     signature: StringProperty(
         name = "Signature",
-        default = "*432",
         description = "Orbifold signature",
+        default = "*432",
         maxlen = 7,
         search = search_signature,
-        #search_options = {"SORT"}, 
+        #search_options = {'SORT'}, 
         translation_context = "SymGrp button",
     )
     lock : BoolProperty(
@@ -125,8 +127,7 @@ class SymGrpAdder(bpy.types.Operator, AddObjectHelper):
     )
 
     def execute(self, context):
-        add_symgrp(self, context)
-        return {'FINISHED'}
+        return add_symgrp(self, context)
 
 
 class OBJECT_OT_add_symgrp(SymGrpAdder):
@@ -160,6 +161,7 @@ class OBJECT_OT_symgrp_from_object(SymGrpAdder):
     def poll(cls, context):
         return context.active_object is not None
 
+
 # Menus
 
 def add_symgrp_menu(self, context):
@@ -176,6 +178,7 @@ def symgrp_from_object_menu(self, context):
         text="Symmetry group from object",
         icon='MOD_MIRROR',
     ).mode = 'OBJECT'
+
 
 # Registration
         
