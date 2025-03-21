@@ -1,4 +1,4 @@
 import bpy
 op = bpy.context.active_operator
 
-op.signature = '423'
+ooctahedron.pyp.signature = '423'
