@@ -1,10 +1,13 @@
+from functools import reduce
+from operator import mul
+
 import bpy
 import bpy.types
-from bpy.props import StringProperty, EnumProperty, BoolProperty
+from bpy.props import StringProperty, EnumProperty, BoolProperty, FloatVectorProperty
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
 
 from .simetrias import SymGrp, BadSymGrpError
-from .utils import Vector
+from .utils import Vector, Quaternion
 
 
 MODES = (
@@ -49,9 +52,11 @@ def add_symgrp(operator, context):
             ": ".join((str(type(e).__name__), *e.args)))
         return
     
+    extra_rotation = operator.extra_rotation.to_quaternion()
     match operator.mode:
         case 'TILE':
             verts, faces = grp.tile
+            verts = tuple(extra_rotation.conjugated() @ v for v in verts)
             data = bpy.data.meshes.new('Tile')
             data.from_pydata(verts, (), faces)
             object_add_command = lambda: bpy.data.objects.new('Tile', data)
@@ -67,12 +72,15 @@ def add_symgrp(operator, context):
     for axis, scale in grp:
         tile = object_add_command()
         context.collection.objects.link(tile)
-        tile.empty_display_type = 'SINGLE_ARROW'
-        tile.rotation_mode = 'QUATERNION'
-        tile.rotation_quaternion = axis
-        tile.location = Vector()
         tile.parent = empty
-        tile.scale *= scale
+        tile.empty_display_type = 'SINGLE_ARROW'
+        tile.location = Vector()
+        tile.scale = scale
+        # A positive variant of the scale will be needed
+        scale_adapted = (s * reduce(mul, scale) for s in scale)
+        tile.rotation_mode = 'QUATERNION'
+        tile.rotation_quaternion = axis @ (
+            extra_rotation * Quaternion((1, *scale_adapted)))
         if operator.lock:
             for transform in "location", "rotation", "scale":
                 setattr(tile, f"lock_{transform}", (True, True, True))
@@ -106,6 +114,14 @@ class SymGrpAdder(bpy.types.Operator, AddObjectHelper):
         description = "Lock position, scale and rotation to avoid breaking the symmetry",
         default = True,
         translation_context = "SymGrp button",
+    )
+    extra_rotation: FloatVectorProperty(
+        name = "Extra rotation",
+        description = "Additional rotation that does not affect the axes",
+        subtype = 'EULER',
+        #default = (0,0,0),
+        translation_context = "SymGrp button",
+        options = {'SKIP_SAVE'},
     )
 
     def execute(self, context):
