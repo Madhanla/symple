@@ -119,7 +119,7 @@ class SymGrp():
                     case _ if parens is not None and char in digits:
                         parens.append(char)
                     case _ if parens is not None:
-                        raise ValueError("Non-digit in parens")
+                        raise ValueError(f"Non-digit '{char}' in parens")
                     case "0" | "∞":
                         centers.append(inf)
                     case _ if char in digits:

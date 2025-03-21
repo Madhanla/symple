@@ -5,6 +5,10 @@ tetrahedral, octahedral, icosahedral).
 
 ### Installation
 
+Now you can install it from Blender. Just open preferences > Get
+extensions, search "Symple" and install. Only follow the instructions
+above if you want to modify the add-on.
+
 1. Download the zip file.
 2. Open preferences in Blender.
 3. In extensions, click the upper right button > Install from disk.
