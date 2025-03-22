@@ -75,12 +75,15 @@ def add_symgrp(operator, context):
         tile.parent = empty
         tile.empty_display_type = 'SINGLE_ARROW'
         tile.location = Vector()
-        tile.scale = scale
-        # A positive variant of the scale will be needed
-        scale_adapted = (s * reduce(mul, scale) for s in scale)
         tile.rotation_mode = 'QUATERNION'
+        # The extra rotation is applied first. Its axis has to be
+        # multiplied by the corresponding scale in order to keep the
+        # mirror. The angle also has to be inverted if the orientation
+        # is negative. Only then is the rotation of the individual
+        # group element applied.
         tile.rotation_quaternion = axis @ (
-            extra_rotation * Quaternion((1, *scale_adapted)))
+            extra_rotation * Quaternion((reduce(mul, scale), *scale)))
+        tile.scale = scale
         if operator.lock:
             for transform in "location", "rotation", "scale":
                 setattr(tile, f"lock_{transform}", (True, True, True))
@@ -126,8 +129,7 @@ class SymGrpAdder(bpy.types.Operator, AddObjectHelper):
         options = {'SKIP_SAVE'},
     )
 
-    def execute(self, context):
-        return add_symgrp(self, context)
+    execute = add_symgrp
 
 
 class OBJECT_OT_add_symgrp(SymGrpAdder):
