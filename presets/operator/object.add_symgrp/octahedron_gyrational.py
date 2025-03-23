@@ -1,4 +1,5 @@
 import bpy
 op = bpy.context.active_operator
 
-ooctahedron.pyp.signature = '423'
+op.signature = '423'
+op.extra_rotation = (0,0,0)
