@@ -1,3 +1,5 @@
+"""Utility functions that do not depend on bpy, but might depend on
+mathutils. Also re-exports mathutils' Quaternion and Vector."""
 from itertools import product
 
 from mathutils import Quaternion, Vector

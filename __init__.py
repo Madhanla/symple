@@ -1,7 +1,7 @@
 """Symple (symmetry groups) --- © Martín Torres Valverde 2025. 
 
 Add objects with tetrahedric, hexaedric, icosahedric and other forms
-of symmetry.
+of symmetry, as a more general mirror / array modifier.
 
 Usage in Blender:
 * Object mode > A(dd) > Symmetry group

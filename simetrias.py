@@ -1,8 +1,11 @@
 """=================== General symmetry groups =====================
- Add a symmetry group (frieze, planar or spherical) to an object, as a
- more general mirror / repeat modifier. Orbifold notation is used, as
- in Conway, Burgiel and Goodman-Strauss's book *The symmetries of
- things*.
+This module is independent of `bpy`, but not `mathutils`. It defines
+symmetry groups (frieze, planar or spherical). Orbifold notation is
+used, as in Conway, Burgiel and Goodman-Strauss's book *The symmetries
+of things*.
+
+Right now, only spherical groups are supported, which are harder than
+planar groups to achieve in plain Blender.
 
 """
 from math import pi ,inf, cos, acos, sin
@@ -27,22 +30,46 @@ class BadSymGrpError(ValueError):
 class SymGrp():
     """Immutable symmetry group from orbifold signature.
 
-    Each character of a well-formed signature lies in
-    '0123456789*xo()'.  0 is interpreted as inf. Parens must surround
-    numbers >= 10. Points are not supported. Dihedrical / Cyclic
-    gruops can be obtained as spherical groups (*NN or NN,
-    respectively).  Ones '1' in the signature are ignored.  Option
-    'calculate_axes' can be turned off for debugging purposes.
+    Iterating over the group returns its elements, stored in
+    self.all_axes, which gives pairs (axis, scale) where each axis is
+    a quaternion and the scale is a three-element tuple corresponding
+    to the three axes.
 
-    EXAMPLE:
-    > G = SymGrp("*432")      # Symmetry group of a cube
-    > G.n_symmetries
-    48
-    > len(G.axes)
-    24
+    The read-only properties defined are:
+    * gyrations, kaleidoscopes, stars, xs, os # Features of the orbifold
+    * signature                               # Get orbifold signature
+    * axes, inverse_axes, all_axes            # Get group of quaternions
+    * tile                                    # Fundamental tile
+    * has_inverse_symmetries, gyrational      # Booleans
+    * type                                    # Spherical, planar, etc.
+    * cost, n_symmetries                      # Numbers from the signature
 
     """
     def __init__(self, signature, *, calculate_axes = True):
+        """Returns a SymGrp object given an orbifold signature.
+        
+        Each character of a well-formed signature lies in
+        '0123456789*xo()'. 0 is interpreted as infinity. Parens must
+        surround numbers >= 10. Points are not supported. Dihedrical /
+        Cyclic gruops can be obtained as spherical groups (*NN or NN,
+        respectively).  Ones '1' in the signature are ignored. Note
+        that two equivalent signatures such as '*432' and '*324' will
+        not produce exactly the same group and tile, but a rotated
+        version of them. For more information, see the docstring on
+        `tile`.
+
+        Option 'calculate_axes' can be turned off for debugging
+        purposes.
+
+        EXAMPLE:
+        > G = SymGrp("*432") # Symmetry group of a cube
+        > G.n_symmetries # Or len(G)
+        48
+        # G.axes gives only the gyrations as quaternions
+        > len(G.axes)
+        24
+
+        """
         self._parse(signature)
         self._axes = self._tile = self._inverse_axes = self._all_axes = None
         if calculate_axes:
@@ -401,7 +428,7 @@ class SymGrp():
     
     @property
     def axes(self):
-        """Tuple containing the direct symmetries represented via
+        """Sequence containing the direct symmetries represented via
         quaternions"""
         if self._axes is None:
             self._calculate_axes()
@@ -409,7 +436,7 @@ class SymGrp():
 
     @property
     def inverse_axes(self):
-        """Tuple containing the inverse symmetries represented via
+        """Sequence containing the inverse symmetries represented via
         quaternions.
 
         After rotating according to each quaternion, it is necessary

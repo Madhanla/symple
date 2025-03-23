@@ -1,3 +1,11 @@
+"""This file defines two operators that can be called from the Blender
+User Interface. Both of them add symmetry groups. The first one
+(OBJECT_OT_add_symgrp) creates a group of tiles / axes distributed
+according to the symmetry. The second one
+(OBJECT_OT_symgrp_from_object) creates a symmetry group using the
+active object's data.
+
+"""
 from functools import reduce
 from operator import mul
 
