@@ -24,13 +24,13 @@ ADDON_FOLDER_PATH = _os.path.dirname(__file__)
 # Registration
 
 def register():
-    print(f"Enabling {__package__}")
+    #print(f"Enabling {__package__}")
     addon_add_object.register()
     bpy.utils.register_preset_path(ADDON_FOLDER_PATH)
 
 
 def unregister():
-    print(f"Disabling {__package__}")
+    #print(f"Disabling {__package__}")
     addon_add_object.unregister()
     bpy.utils.unregister_preset_path(ADDON_FOLDER_PATH)
 
