@@ -6,6 +6,7 @@ from mathutils import Quaternion, Vector
 
 
 class ImmutableModifyError(Exception):
+    """An ImmutableList has been modified"""
     pass
 
 

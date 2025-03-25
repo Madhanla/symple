@@ -52,11 +52,11 @@ class SymGrp():
         '0123456789*xo()'. 0 is interpreted as infinity. Parens must
         surround numbers >= 10. Points are not supported. Dihedrical /
         Cyclic gruops can be obtained as spherical groups (*NN or NN,
-        respectively).  Ones '1' in the signature are ignored. Note
+        respectively). Ones '1' in the signature are ignored. Note
         that two equivalent signatures such as '*432' and '*324' will
-        not produce exactly the same group and tile, but a rotated
-        version of them. For more information, see the docstring on
-        `tile`.
+        not produce exactly the same group, but a rotated version of
+        it, and probably a different fundamental tile. For more
+        information, see the docstring on `tile`.
 
         Option 'calculate_axes' can be turned off for debugging
         purposes.
