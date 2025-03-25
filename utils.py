@@ -39,10 +39,9 @@ def approximate_in(q, ps, epsilon = 1e-2):
     return False
 
 
-def get_spherical_group(gens, size):
-    """Returns a tuple of all the elements in a spherical group
-    (modulo a reflection, if necessary) from the generator quaternions
-    and the size.
+def group_from_gens_size(gens, size):
+    """Returns a tuple of all the elements in a finite group of
+     quaternions from the generators and the size.
 
     The gens must be an iterable of quaternions, and size must be a
     positive integer.

@@ -12,7 +12,7 @@ from math import pi ,inf, cos, acos, sin
 from string import digits
 
 from .utils import (
-    get_spherical_group,
+    group_from_gens_size,
     ImmutableList,
     ImmutableModifyError,
     Quaternion, Vector,
@@ -77,7 +77,7 @@ class SymGrp():
             assert(len(self) == self.n_symmetries)
 
     def _calculate_axes(self):
-        self._axes, self._inverse_axes, *self._tile = self._get_axes()
+        self._axes, self._inverse_axes, self._tile = self._get_axes()
         self._all_axes = (*((ax, Vector((1,1,1))) for ax in self.axes),
                           *((ax, Vector((1,-1,1))) for ax in self.inverse_axes))
             
@@ -221,210 +221,17 @@ class SymGrp():
     
     def _get_axes(self):
         """Calculates the axis and fundamental tile"""
-        # Default for when there are no symmetries
-        axes = (Quaternion(),)
-        inverse_axes = ()
-        verts = (Vector((0,0,1)), Vector((0,0,-1)),
-                 Vector((1,0,0)), Vector((-1,0,0)),
-                 Vector((0,1,0)), Vector((0,-1,0)),
-                 )
-        faces = ((0,2,4), (0,5,2), (0,4,3), (0,3,5),
-                 (1,4,2), (1,2,5), (1,3,4), (1,5,3),
-                 )
-
-        match self.type, self:
-            case 'HYPERBOLIC', _:
+        match self.type:
+            case 'HYPERBOLIC':
                 raise BadSymGrpError(
                     f"Hyperbolic groups not supported (cost {self.cost} > 2)"
                 )
 
-            case ('FRIEZE' | 'PLANAR'), _:
+            case ('FRIEZE' | 'PLANAR'):
                 raise NotImplementedError("Non-spherical symmetry group")
 
-            case 'SPHERICAL', _ if inf in [*self.gyrations,
-                                           *self.kaleidoscopes]:
-                raise BadSymGrpError(
-                    "Spherical groups cannot have infinites (0)"
-                )
-
-            # Gyrational spherical groups
-            case 'SPHERICAL', SymGrp(gyrational = True, gyrations = []):
-                pass                                 # * Group C_1 (unit)
-
-            case 'SPHERICAL', SymGrp(gyrational = True, gyrations = [M, N]):
-                if M != N:                           # * Group C_N (cyclyc)
-                    raise BadSymGrpError("Spherical group MN must have M = N")
-                axes = tuple(Quaternion((0, 0, 1), i*2*pi/N) for i in range(N))
-                verts = (Vector((0, 0, 1)),
-                         Vector((0, 0, -1)),
-                         Vector((1, 0, 0)),
-                         Quaternion((0,0,1), pi/N) @ Vector((1, 0, 0)),
-                         Quaternion((0,0,1), 2*pi/N) @ Vector((1, 0, 0)))
-                faces = (0,2,3), (0,3,4), (1,3,2), (1,4,3)
-
-            case 'SPHERICAL', SymGrp(gyrational = True, gyrations = [M, N, P]):
-                A, B, C = pi/M, pi/N, pi/P           # * Other
-
-                # Side lengths
-                c = acos((cos(C) + cos(A)*cos(B))/(sin(A)*sin(B)))
-                b = acos((cos(B) + cos(C)*cos(A))/(sin(C)*sin(A)))
-                
-                # Vertices and faces
-                pa = Vector((0, 0, 1))
-                pb = Quaternion((0, 1, 0), c) @ pa
-                v = Vector((0,1,0))
-                v.rotate(Quaternion((0,0,1), A))
-                pc = pa.copy()
-                pc.rotate(Quaternion(v, b))
-                
-                verts = (pa, pb, pc, pc * Vector((1,-1,1)))
-                faces = (0,1,2), (0,3,1)
-
-                # Rotation axes
-                axes = get_spherical_group(
-                    [Quaternion(pa, 2*A),
-                     Quaternion(pb, 2*B),
-                     Quaternion(pc, 2*C)], 
-                    self.n_symmetries)
-
-            case 'SPHERICAL', SymGrp(gyrational = True):
-                raise BadSymGrpError(
-                    "Gyrational spherical groups must be MN or MNP"
-                )
-
-            # Mixed spherical groups
-            case 'SPHERICAL', SymGrp(gyrations = [2], kaleidoscopes = [N]):
-                # Vertices and faces
-                pa = Vector((1,0,0))
-                pb = Vector((0,0,1))
-                pc = Quaternion((1,0,0),   pi/(2*N)) @ Vector((0,0,1))
-                pd = Quaternion((1,0,0), 2*pi/(2*N)) @ Vector((0,0,1))
-                verts = (pa, pb, pc, pd)
-                faces = (0,1,2), (0,2,3)
-
-                # Rotation axes
-                axes = get_spherical_group(
-                    (Quaternion((1,0,0), 2*pi/N), Quaternion(pc, pi)),
-                    self.n_symmetries // 2)
-
-            case 'SPHERICAL', SymGrp(gyrations = [3], kaleidoscopes = [2]):
-                A, B, C = pi/4, pi/2, pi/3           # * Group 3*2
-
-                # Side lengths
-                b = acos((cos(B) + cos(C)*cos(A))/(sin(C)*sin(A)))
-
-                # Vertices and faces
-                v = Quaternion((0,0,1), A) @ Vector((0,1,0))
-                pa = Vector((0,0,1))
-                pb = Quaternion((0,1,0), pi/4) @ pa
-                pc = Vector((1,0,0))
-                pd = Quaternion(v, b) @ pa
-
-                verts = pa, pb, pc, pd
-                faces = (0,1,3), (1,2,3)
-
-                # Rotation axes
-                axes = get_spherical_group(
-                    (Quaternion(pd, 2*pi/3),
-                     Quaternion((0,0,1), pi)),
-                    self.n_symmetries // 2)
-
-            case 'SPHERICAL', SymGrp(gyrations = [N], stars = 1,
-                                     kaleidoscopes = []):
-                # Vertices and faces                 # * Group N*
-                pa = Vector((0,1,0))
-                pb = Vector((0,0,1))
-                pc =  Quaternion((0,1,0), pi/N) @ pb
-                pd =  Quaternion((0,1,0), 2*pi/N) @ pb
-                verts = pa, pb, pc, pd
-                faces = (0,1,2), (0,2,3)
-
-                # Rotation axes
-                axes = tuple(Quaternion((0,1,0), n*2*pi/N)
-                             for n in range(N))
-
-            case 'SPHERICAL', SymGrp(gyrations = [N], xs = 1,
-                                     kaleidoscopes = []):
-                # Vertices and faces                 # * Group Nx
-                pa = Vector((0,1,0))
-                pb = Vector((0,0,1))
-                pc =  Quaternion((0,1,0), pi/N) @ pb
-                pd =  Quaternion((0,1,0), 2*pi/N) @ pb
-                verts = pa, pb, pc, pd
-                faces = (0,1,2), (0,2,3)
-
-                # Rotation axes
-                axes = tuple(Quaternion((0,1,0), n*2*pi/N)
-                             for n in range(N))
-                inverse_axes = tuple(Quaternion((0,1,0), n*2*pi/N + pi/N)
-                                     for n in range(N))
-
-            case 'SPHERICAL', SymGrp(gyrational = False, gyrations = [_,*_]):
-                raise BadSymGrpError(
-                    "Mixed spherical groups must be 2*N, 3*2, N* or Nx"
-                )
-
-            # Groups with no gyrations or miracles
-            case 'SPHERICAL', SymGrp(gyrations = [], xs = 1):
-                # Vertices and faces                 # * Single miracle
-                verts = verts[:-1]  
-                faces = (0,2,4), (0,4,3), (1,4,2), (1,3,4)
-
-                # Rotation axes
-                inverse_axes = (Quaternion((0,1,0), pi),)
-
-            case 'SPHERICAL', SymGrp(gyrations = [], kaleidoscopes = []):
-                verts = verts[:-1]                   # * Group D_1 single mirror
-                faces = (0,2,4), (0,4,3), (1,4,2), (1,3,4)
-
-            case 'SPHERICAL', SymGrp(gyrations = [],
-                                     kaleidoscopes = [M, N]):
-                if M != N:                           # * Group D_N (dyhedric)
-                    raise BadSymGrpError("Spherical group *MN must have M = N")
-                verts = (Vector((0, 0, 1)),
-                         Vector((0, 0, -1)),
-                         Vector((1, 0, 0)),
-                         Quaternion((0,0,1), pi/N) @ Vector((1, 0, 0)),)
-                faces = (0,2,3), (1,3,2)
-                axes = tuple(Quaternion((0, 0, 1), i*2*pi/N) for i in range(N))
-
-            case 'SPHERICAL', SymGrp(gyrations = [],
-                                     kaleidoscopes = [M, N, P]):
-                A, B, C = pi/M, pi/N, pi/P           # * Other
-
-                # Side lengths
-                c = acos((cos(C) + cos(A)*cos(B))/(sin(A)*sin(B)))
-                b = acos((cos(B) + cos(C)*cos(A))/(sin(C)*sin(A)))
-                
-                # Vertices and faces
-                pa = Vector((0, 0, 1))
-                pb = Quaternion((0, 1, 0), c) @ pa
-                v = Vector((0,1,0))
-                v.rotate(Quaternion((0,0,1), A))
-                pc = pa.copy()
-                pc.rotate(Quaternion(v, b))
-                
-                verts = pa, pb, pc
-                faces = ((0,1,2),)
-
-                # Rotation axes
-                axes = get_spherical_group(
-                    [Quaternion(pa, 2*A),
-                     Quaternion(pb, 2*B),
-                     Quaternion(pc, 2*C)], 
-                    self.n_symmetries // 2)
-
-            case 'SPHERICAL', SymGrp(gyrational = False):
-                raise BadSymGrpError(
-                    "Kaleidoscopic spherical groups must be *MN or *MNP"
-                )
-
-            case _:
-                raise BadSymGrpError("Bug: non-existing group found")
-
-        if self.has_inverse_symmetry and not self.xs:
-            inverse_axes = axes
-        return axes, inverse_axes, verts, faces
+            case 'SPHERICAL':
+                return spherical_get_axes(self)
     
     @property
     def axes(self):
@@ -507,3 +314,199 @@ class SymGrp():
 
     def __len__(self):
         return len(self.all_axes)
+
+
+def spherical_get_axes(group):
+    """Get the elements of a spherical group"""
+    # Default for when there are no symmetries
+    axes = (Quaternion(),)
+    inverse_axes = ()
+    verts = (Vector((0,0,1)), Vector((0,0,-1)),
+             Vector((1,0,0)), Vector((-1,0,0)),
+             Vector((0,1,0)), Vector((0,-1,0)),
+             )
+    faces = ((0,2,4), (0,5,2), (0,4,3), (0,3,5),
+             (1,4,2), (1,2,5), (1,3,4), (1,5,3),
+             )
+
+    match group:
+        case _ if inf in [*group.gyrations, *group.kaleidoscopes]:
+            raise BadSymGrpError(
+                "Spherical groups cannot have infinites (0)"
+            )
+
+        # Gyrational or chiral spherical groups
+        case SymGrp(gyrational = True, gyrations = []):
+            pass                                 # * Group C_1 (unit)
+
+        case SymGrp(gyrational = True, gyrations = [M, N]):
+            if M != N:                           # * Group C_N (cyclyc)
+                raise BadSymGrpError("Spherical group MN must have M = N")
+            axes = tuple(Quaternion((0, 0, 1), i*2*pi/N) for i in range(N))
+            verts = (Vector((0, 0, 1)),
+                     Vector((0, 0, -1)),
+                     Vector((1, 0, 0)),
+                     Quaternion((0,0,1), pi/N) @ Vector((1, 0, 0)),
+                     Quaternion((0,0,1), 2*pi/N) @ Vector((1, 0, 0)))
+            faces = (0,2,3), (0,3,4), (1,3,2), (1,4,3)
+
+        case SymGrp(gyrational = True, gyrations = [M, N, P]):
+            A, B, C = pi/M, pi/N, pi/P           # * Other
+
+            # Side lengths
+            c = acos((cos(C) + cos(A)*cos(B))/(sin(A)*sin(B)))
+            b = acos((cos(B) + cos(C)*cos(A))/(sin(C)*sin(A)))
+
+            # Vertices and faces
+            pa = Vector((0, 0, 1))
+            pb = Quaternion((0, 1, 0), c) @ pa
+            v = Vector((0,1,0))
+            v.rotate(Quaternion((0,0,1), A))
+            pc = pa.copy()
+            pc.rotate(Quaternion(v, b))
+
+            verts = (pa, pb, pc, pc * Vector((1,-1,1)))
+            faces = (0,1,2), (0,3,1)
+
+            # Rotation axes
+            axes = group_from_gens_size(
+                [Quaternion(pa, 2*A),
+                 Quaternion(pb, 2*B),
+                 Quaternion(pc, 2*C)], 
+                group.n_symmetries)
+
+        case SymGrp(gyrational = True):
+            raise BadSymGrpError(
+                "Gyrational spherical groups must be MN or MNP"
+            )
+
+        # Mixed spherical groups
+        case SymGrp(gyrations = [2], kaleidoscopes = [N]):
+            # Vertices and faces
+            pa = Vector((1,0,0))
+            pb = Vector((0,0,1))
+            pc = Quaternion((1,0,0),   pi/(2*N)) @ Vector((0,0,1))
+            pd = Quaternion((1,0,0), 2*pi/(2*N)) @ Vector((0,0,1))
+            verts = (pa, pb, pc, pd)
+            faces = (0,1,2), (0,2,3)
+
+            # Rotation axes
+            axes = group_from_gens_size(
+                (Quaternion((1,0,0), 2*pi/N), Quaternion(pc, pi)),
+                group.n_symmetries // 2)
+
+        case SymGrp(gyrations = [3], kaleidoscopes = [2]):
+            A, B, C = pi/4, pi/2, pi/3           # * Group 3*2
+
+            # Side lengths
+            b = acos((cos(B) + cos(C)*cos(A))/(sin(C)*sin(A)))
+
+            # Vertices and faces
+            v = Quaternion((0,0,1), A) @ Vector((0,1,0))
+            pa = Vector((0,0,1))
+            pb = Quaternion((0,1,0), pi/4) @ pa
+            pc = Vector((1,0,0))
+            pd = Quaternion(v, b) @ pa
+
+            verts = pa, pb, pc, pd
+            faces = (0,1,3), (1,2,3)
+
+            # Rotation axes
+            axes = group_from_gens_size(
+                (Quaternion(pd, 2*pi/3),
+                 Quaternion((0,0,1), pi)),
+                group.n_symmetries // 2)
+
+        case SymGrp(gyrations = [N], stars = 1,
+                    kaleidoscopes = []):
+            # Vertices and faces                 # * Group N*
+            pa = Vector((0,1,0))
+            pb = Vector((0,0,1))
+            pc =  Quaternion((0,1,0), pi/N) @ pb
+            pd =  Quaternion((0,1,0), 2*pi/N) @ pb
+            verts = pa, pb, pc, pd
+            faces = (0,1,2), (0,2,3)
+
+            # Rotation axes
+            axes = tuple(Quaternion((0,1,0), n*2*pi/N)
+                            for n in range(N))
+
+        case SymGrp(gyrations = [N], xs = 1, kaleidoscopes = []):
+            # Vertices and faces                 # * Group Nx
+            pa = Vector((0,1,0))
+            pb = Vector((0,0,1))
+            pc =  Quaternion((0,1,0), pi/N) @ pb
+            pd =  Quaternion((0,1,0), 2*pi/N) @ pb
+            verts = pa, pb, pc, pd
+            faces = (0,1,2), (0,2,3)
+
+            # Rotation axes
+            axes = tuple(Quaternion((0,1,0), n*2*pi/N)
+                            for n in range(N))
+            inverse_axes = tuple(Quaternion((0,1,0), n*2*pi/N + pi/N)
+                                    for n in range(N))
+
+        case SymGrp(gyrational = False, gyrations = [_,*_]):
+            raise BadSymGrpError(
+                "Mixed spherical groups must be 2*N, 3*2, N* or Nx"
+            )
+
+        # Groups with no gyrations or miracles
+        case SymGrp(gyrations = [], xs = 1):
+            # Vertices and faces                 # * Single miracle
+            verts = verts[:-1]  
+            faces = (0,2,4), (0,4,3), (1,4,2), (1,3,4)
+
+            # Rotation axes
+            inverse_axes = (Quaternion((0,1,0), pi),)
+
+        case SymGrp(gyrations = [], kaleidoscopes = []):
+            verts = verts[:-1]                   # * Group D_1 single mirror
+            faces = (0,2,4), (0,4,3), (1,4,2), (1,3,4)
+
+        case SymGrp(gyrations = [], kaleidoscopes = [M, N]):
+            if M != N:                           # * Group D_N (dyhedric)
+                raise BadSymGrpError("Spherical group *MN must have M = N")
+            verts = (Vector((0, 0, 1)),
+                     Vector((0, 0, -1)),
+                     Vector((1, 0, 0)),
+                     Quaternion((0,0,1), pi/N) @ Vector((1, 0, 0)),)
+            faces = (0,2,3), (1,3,2)
+            axes = tuple(Quaternion((0, 0, 1), i*2*pi/N) for i in range(N))
+
+        case SymGrp(gyrations = [], kaleidoscopes = [M, N, P]):
+            A, B, C = pi/M, pi/N, pi/P           # * Other
+
+            # Side lengths
+            c = acos((cos(C) + cos(A)*cos(B))/(sin(A)*sin(B)))
+            b = acos((cos(B) + cos(C)*cos(A))/(sin(C)*sin(A)))
+
+            # Vertices and faces
+            pa = Vector((0, 0, 1))
+            pb = Quaternion((0, 1, 0), c) @ pa
+            v = Vector((0,1,0))
+            v.rotate(Quaternion((0,0,1), A))
+            pc = pa.copy()
+            pc.rotate(Quaternion(v, b))
+
+            verts = pa, pb, pc
+            faces = ((0,1,2),)
+
+            # Rotation axes
+            axes = group_from_gens_size(
+                [Quaternion(pa, 2*A),
+                 Quaternion(pb, 2*B),
+                 Quaternion(pc, 2*C)], 
+                group.n_symmetries // 2)
+
+        case SymGrp(gyrational = False):
+            raise BadSymGrpError(
+                "Kaleidoscopic spherical groups must be *MN or *MNP"
+            )
+
+        case _:
+            raise BadSymGrpError("Bug: non-existing group found")
+
+    if group.has_inverse_symmetry and not group.xs:
+        inverse_axes = axes
+    return axes, inverse_axes, (verts, faces)
