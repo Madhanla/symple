@@ -3,7 +3,7 @@ schema_version = "1.0.0"
 # Example of manifest file for a Blender extension
 # Change the values according to your extension
 id = "symple"
-version = "0.1.1"
+version = "0.1.2"
 name = "Symple (symmetry groups)"
 tagline = "Create figures with spherical symmetry with ease"
 maintainer = "Martín Torres Valverde <buztor@hotmail.com>"
