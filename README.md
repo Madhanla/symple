@@ -18,7 +18,7 @@ Now you can enable / disable the extension whenever you want.
 
 #### Usage
 
-In object mode, press `A` (add object). Then look for **Symmetry
+In object mode, press `Shift+A` (add object). Then look for **Symmetry
 group**. You can choose whether to add a mesh (fundamental tile) or a
 group of axes. A group of objects of the specified type will appear
 parented to an empty object with the same name as the group
@@ -26,8 +26,8 @@ signature. All objects share the same data, only differing in
 location, rotation and scale.
 
 * Option *lock transforms* fixes the location, rotation and scale of
-the objects. This is to avoid breaking the symmetry. You can still
-move the objects by moving the parent empty.
+  the objects. This is to avoid breaking the symmetry. You can still
+  move the objects by moving the parent empty.
 
 * Option *signature* refers to an [Orbifold
   signature](https://en.wikipedia.org/wiki/Orbifold_notation) that
@@ -45,8 +45,8 @@ and so on.
 #### Tips and shortcomings
 
 * It's nice to use it together with the **Extra mesh objects**
-extension, which includes regular solids. You can then remove,
-subdivide and pinch unneeded faces.
+  extension, which includes regular solids. You can then remove,
+  subdivide and pinch unneeded faces.
 
 * The mesh will break if you are not careful. If you leave the cursor
   at the center of the group, using the option *Pivot point > 3D
@@ -70,4 +70,4 @@ subdivide and pinch unneeded faces.
 * Select all the meshes in the hierarchy and press `Ctrl-J` to join the
   meshes, if you want to have a unified mesh. Note that further edits
   will break the symmetry. You can merge relatively nearby vertices
-  like this: Edit mode > `m` > by distance.
+  like this: Edit mode > `M` > by distance.
