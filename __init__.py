@@ -11,11 +11,13 @@ Usage in Blender:
 """
 import os as _os
 
-import bpy.utils
+import bpy
 import importlib as _importlib
 
 from . import addon_add_object
+from . import translations
 _importlib.reload(addon_add_object)
+_importlib.reload(translations)
 
 
 ADDON_FOLDER_PATH = _os.path.dirname(__file__)
@@ -27,12 +29,14 @@ def register():
     #print(f"Enabling {__package__}")
     addon_add_object.register()
     bpy.utils.register_preset_path(ADDON_FOLDER_PATH)
+    bpy.app.translations.register(__package__, translations.translations_dict)
 
 
 def unregister():
     #print(f"Disabling {__package__}")
     addon_add_object.unregister()
     bpy.utils.unregister_preset_path(ADDON_FOLDER_PATH)
+    bpy.app.translations.unregister(__package__)
 
 
 if __name__ == "__main__":
